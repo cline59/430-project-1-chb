@@ -106,7 +106,8 @@
       //send request to handleResponse
       handleResponse(response, method === 'get');
     };
-    //in progress
+    
+    //send update request for monsters
     const requestMonsterUpdate = async (enemyForm) => {
       const url = enemyForm.querySelector('#urlField').value;
       const method = enemyForm.querySelector('#methodSelect').value;
@@ -122,6 +123,19 @@
       //send request to handleResponse
       handleResponse(response, method === 'get');
     };
+
+    //determine encounter difficulty based on party and monsters
+    const calculateDifficulty = () => {
+        //calculate the xp (difficulty) thresholds of the party by taking the easy threshold for each 
+        //character and multipling it by 2,3, and 4 for the other thresholds.
+
+        //add the xp from all the monsters, then use a multiplier based on the number of monsters
+
+        //the difficulty will be the next lowest difficulty threshold from the xp total, unless
+        //its an easy encounter
+
+        //print thresholds, xp total, and difficulty to the page
+    }
 
     const init = () => {
       //grab forms
