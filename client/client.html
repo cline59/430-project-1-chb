@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>430 Project 1</title>
+  <link rel="stylesheet" type="text/css" href="/style.css">
+  
+  <script>
+    //handles fetch response
+    const handleResponse = async (response, parseResponse) => {
+      const content = document.querySelector('#content');
+
+      switch(response.status) {
+        case 200: //success
+          content.innerHTML = `<b>Success</b>`;
+          break;
+        case 201: //created
+          content.innerHTML = `<b>Created</b>`;
+          break;
+        case 204: //updated
+          content.innerHTML = '<b>Updated (No Content)</b>';
+          return;
+        case 400: //bad request
+          content.innerHTML = `<b>Bad Request</b>`;
+          break;
+        case 404: //not found
+          content.innerHTML = `<b>Resource Not Found</b>`;
+          break;
+        default: 
+          content.innerHTML = `Error code not implemented by client.`;
+          break;
+      }
+
+      //parse if get request
+      if(parseResponse) {
+        //parse to json
+        let obj = await response.json();
+        console.log(obj);
+        
+        //stringify json for display
+        let jsonString = JSON.stringify(obj);
+        content.innerHTML += `<p>${jsonString}</p>`;
+      }
+    };
+
+    //send postRequest
+    const sendPost = async (partyForm) => {
+      const partyAction = partyForm.getAttribute('action');
+      const partyMethod = partyForm.getAttribute('method');
+      const levelField = partyForm.querySelector('#levelField');
+      const amountField = partyForm.querySelector('#amountField');
+
+      //data string in FORM-URLENCODED format
+      const formData = `level=${levelField.value}&amount=${amountField.value}`;
+
+      //make fetch request
+      let response = await fetch(partyAction, {
+        method: partyMethod,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+        },
+        body: formData,
+      });
+
+      //handle response
+      handleResponse(response, true);
+    };
+    //send update request
+    const requestUpdate = async (userForm) => {
+      const url = userForm.querySelector('#urlField').value;
+      const method = userForm.querySelector('#methodSelect').value;
+      
+      //await fetch response
+      let response = await fetch(url, {
+        method,
+        headers: {
+            'Accept': 'application/json'
+        },
+      });
+
+      //send request to handleResponse
+      handleResponse(response, method === 'get');
+    };
+
+    const init = () => {
+      //grab forms
+      const userForm = document.querySelector('#userForm');
+      const partyForm = document.querySelector('#partyForm');
+      
+      //handles getUser request
+      const getCharacters = (e) => {
+        e.preventDefault();
+        requestUpdate(userForm);
+        return false;
+      }
+      //handles addUser request
+      const setPartyComposition = (e) => {
+        e.preventDefault();
+        sendPost(partyForm);
+        return false;
+      }
+      
+      //add event listener
+      userForm.addEventListener('submit', getCharacters);
+      partyForm.addEventListener('submit', setPartyComposition)
+    };
+
+    //run init on load
+    window.onload = init;
+  </script>
+</head>
+<body>
+  <section id="top">
+    <h3>Goblin Fight Club</h3>
+    <form id="partyForm" action="/addToParty" method="post">
+      <label for="level">Level: </label>
+      <input id="levelField" type="number" name="level" min="1" max="20" step="1"/>
+      <label for="amount">Amount: </label>
+      <input id="amountField" type="number" name="amount" min="1" max="100" step="1"/>
+      <input type="submit" value="Add To Party" />
+    </form>
+    <form id="userForm" action="/getUsers" method="get">
+      <select id='urlField'>
+        <option value='/getUsers'>/getUsers</option>
+        <option value='/notReal'>/notReal</option>
+      </select>
+      <select id="methodSelect">
+        <option value="get">GET</option>
+        <option value="head">HEAD</option>
+      </select>
+      <input type="submit" value="Get User" />
+    </form>
+  </section>
+  <section id="content">
+  </section>
+</body>
+</html>
