@@ -1,4 +1,5 @@
 const partyByLevel = {};
+const monsters = {};
 //respond to json object
 const respondJSON = (request, response, status, object) => {
   //header object
@@ -37,7 +38,7 @@ const internalMeta = (request, response) => {
 };
 
 //return json user object
-const getUsers = (request, response) => {
+const getCharacters = (request, response) => {
     const responseJSON = {
       partyByLevel,
     };
@@ -46,7 +47,19 @@ const getUsers = (request, response) => {
 };
 
 //return 200
-const getUsersMeta = (request, response) => respondJSONMeta(request, response, 200);
+const getCharactersMeta = (request, response) => respondJSONMeta(request, response, 200);
+
+//return json user object
+const getMonsters = (request, response) => {
+  const responseJSON = {
+    monsters,
+  };
+
+  respondJSON(request, response, 200, responseJSON);
+};
+
+//return 200
+const getMonstersMeta = (request, response) => respondJSONMeta(request, response, 200);
 
 //404 with message
 const notFound = (request, response) => {
@@ -62,13 +75,13 @@ const notFoundMeta = (request, response) => {
     respondJSONMeta(request, response, 404);
 };
 
-//add user from post body
+//add characters from post body
 const addToParty = (request, response, body) => {
-    // default json
+    //default json
     const responseJSON = {
-      message: 'Amount and Level are both required.',
+      message: 'Level and Amount are both required.',
     };
-    // check if fields exist
+    //check if fields exist
     if (!body.amount || !body.level) {
       responseJSON.id = 'missingParams';
       return respondJSON(request, response, 400, responseJSON);
@@ -87,23 +100,58 @@ const addToParty = (request, response, body) => {
     partyByLevel[body.level].level = body.level;
     partyByLevel[body.level].amount = body.amount;
   
-    // sent response if successful
+    //sent response if successful
     if (responseCode === 201) {
       responseJSON.message = 'Created Successfully';
       return respondJSON(request, response, responseCode, responseJSON);
     }
-    // 204 has an empty payload, just a success
-    // It cannot have a body, so we just send a 204 without a message
-    // 204 will not alter the browser in any way!!!
+    //204 is empty, will just post success
     return respondJSONMeta(request, response, responseCode);
   };
 
+  //add monsters from post body
+const addMonster = (request, response, body) => {
+  // default json
+  const responseJSON = {
+    message: 'Amount is required.',
+  };
+  //check if fields exist
+  if (!body.amount) {
+    responseJSON.id = 'missingParams';
+    return respondJSON(request, response, 400, responseJSON);
+  }
+
+  //default status code
+  let responseCode = 204;
+
+  //create monster if it dosen't exist
+  if (!monsters[body.moster]) {
+    responseCode = 201;
+    monsters[body.monster] = {};
+  }
+
+  //add/update fields
+  monsters[body.monster].monster = body.monster;
+  monsters[body.monster].amount = body.amount;
+
+  //sent response if successful
+  if (responseCode === 201) {
+    responseJSON.message = 'Created Successfully';
+    return respondJSON(request, response, responseCode, responseJSON);
+  }
+  //204 is empty, will just post success
+  return respondJSONMeta(request, response, responseCode);
+};
+
 module.exports = {
-    getUsers,
-    getUsersMeta,
+    getCharacters,
+    getCharactersMeta,
+    getMonsters,
+    getMonstersMeta,
     notFound,
     notFoundMeta,
     internal,
     internalMeta,
     addToParty,
+    addMonster,
 };

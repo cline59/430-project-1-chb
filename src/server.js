@@ -23,17 +23,20 @@ const urlStruct = {
     GET: {
       '/': htmlHandler.getIndex,
       '/style.css': htmlHandler.getCSS,
-      '/getUsers': jsonHandler.getUsers,
+      '/getCharacters': jsonHandler.getCharacters,
+      '/getMonsters': jsonHandler.getMonsters,
       '/internal': jsonHandler.internal,
       notFound: jsonHandler.notFound,
     },
     HEAD: {
-      '/getUsers': jsonHandler.getUsersMeta,
+      '/getCharacters': jsonHandler.getCharactersMeta,
+      '/getMonsters': jsonHandler.getMonstersMeta,
       '/internal': jsonHandler.internalMeta,
       notFound: jsonHandler.notFoundMeta,
     },
     POST: {
         '/addToParty': jsonHandler.addToParty,
+        '/addMonster': jsonHandler.addMonster,
     },
 };
 //recompiles body of request and calls correct handler
@@ -65,6 +68,9 @@ const parseBody = (request, response, handler) => {
 const handlePost = (request, response, parsedUrl) => {
     if (parsedUrl.pathname === '/addToParty') {
       parseBody(request, response, jsonHandler.addToParty);
+    }
+    if (parsedUrl.pathname === '/addMonster') {
+        parseBody(request, response, jsonHandler.addMonster);
     }
 };
 

@@ -42,8 +42,8 @@
       }
     };
 
-    //send postRequest
-    const sendPost = async (partyForm) => {
+    //send party postRequest
+    const sendPartyPost = async (partyForm) => {
       const partyAction = partyForm.getAttribute('action');
       const partyMethod = partyForm.getAttribute('method');
       const levelField = partyForm.querySelector('#levelField');
@@ -65,10 +65,51 @@
       //handle response
       handleResponse(response, true);
     };
-    //send update request
-    const requestUpdate = async (userForm) => {
-      const url = userForm.querySelector('#urlField').value;
-      const method = userForm.querySelector('#methodSelect').value;
+
+    //send party postRequest
+    const sendMonsterPost = async (monsterForm) => {
+      const monsterAction = monsterForm.getAttribute('action');
+      const monsterMethod = monsterForm.getAttribute('method');
+      const monsterSelect = monsterForm.querySelector('#monsterSelect');
+      const amountField = monsterForm.querySelector('#amountField');
+
+      //data string in FORM-URLENCODED format
+      const formData = `monster=${monsterSelect.value}&amount=${amountField.value}`;
+
+      //make fetch request
+      let response = await fetch(monsterAction, {
+        method: monsterMethod,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+        },
+        body: formData,
+      });
+
+      //handle response
+      handleResponse(response, true);
+    };
+
+    //send update request for characters
+    const requestPartyUpdate = async (characterForm) => {
+      const url = characterForm.querySelector('#urlField').value;
+      const method = characterForm.querySelector('#methodSelect').value;
+      
+      //await fetch response
+      let response = await fetch(url, {
+        method,
+        headers: {
+            'Accept': 'application/json'
+        },
+      });
+
+      //send request to handleResponse
+      handleResponse(response, method === 'get');
+    };
+    //in progress
+    const requestMonsterUpdate = async (enemyForm) => {
+      const url = enemyForm.querySelector('#urlField').value;
+      const method = enemyForm.querySelector('#methodSelect').value;
       
       //await fetch response
       let response = await fetch(url, {
@@ -84,25 +125,42 @@
 
     const init = () => {
       //grab forms
-      const userForm = document.querySelector('#userForm');
+      const characterForm = document.querySelector('#characterForm');
+      const enemyForm = document.querySelector('#enemyForm');
       const partyForm = document.querySelector('#partyForm');
+      const monsterForm = document.querySelector('#monsterForm');
+
       
-      //handles getUser request
+      //handles getCharacters request
       const getCharacters = (e) => {
         e.preventDefault();
-        requestUpdate(userForm);
+        requestPartyUpdate(characterForm);
         return false;
       }
-      //handles addUser request
-      const setPartyComposition = (e) => {
+      //handles getCharacters request
+      const getMonsters = (e) => {
         e.preventDefault();
-        sendPost(partyForm);
+        requestPartyUpdate(enemyForm);
+        return false;
+      }
+      //handles addToParty request
+      const addToParty = (e) => {
+        e.preventDefault();
+        sendPartyPost(partyForm);
+        return false;
+      }
+      //handles addToParty request
+      const addMonster = (e) => {
+        e.preventDefault();
+        sendMonsterPost(monsterForm);
         return false;
       }
       
       //add event listener
-      userForm.addEventListener('submit', getCharacters);
-      partyForm.addEventListener('submit', setPartyComposition)
+      characterForm.addEventListener('submit', getCharacters);
+      enemyForm.addEventListener('submit', getMonsters);
+      partyForm.addEventListener('submit', addToParty);
+      monsterForm.addEventListener('submit', addMonster);
     };
 
     //run init on load
@@ -119,17 +177,40 @@
       <input id="amountField" type="number" name="amount" min="1" max="100" step="1"/>
       <input type="submit" value="Add To Party" />
     </form>
-    <form id="userForm" action="/getUsers" method="get">
+    <form id="monsterForm" action="/addMonster" method="post">
+        <label for="monster">Monster: </label>
+        <select id='monsterSelect' name="monster">
+          <option value='goblin'>Goblin</option>
+          <option value='direWolf'>Dire Wolf</option>
+          <option value='owlbear'>Owlbear</option>
+          <option value='redDragon'>Red Dragon</option>
+        </select>
+        <label for="amount">Amount: </label>
+        <input id="amountField" type="number" name="amount" min="1" max="100" step="1"/>
+        <input type="submit" value="Add Monster" />
+      </form>
+    <form id="characterForm" action="/getCharacters" method="get">
       <select id='urlField'>
-        <option value='/getUsers'>/getUsers</option>
+        <option value='/getCharacters'>/getCharacters</option>
         <option value='/notReal'>/notReal</option>
       </select>
       <select id="methodSelect">
         <option value="get">GET</option>
         <option value="head">HEAD</option>
       </select>
-      <input type="submit" value="Get User" />
+      <input type="submit" value="Get Character" />
     </form>
+    <form id="enemyForm" action="/getMonsters" method="get">
+        <select id='urlField'>
+          <option value='/getMonsters'>/getMonsters</option>
+          <option value='/notReal'>/notReal</option>
+        </select>
+        <select id="methodSelect">
+          <option value="get">GET</option>
+          <option value="head">HEAD</option>
+        </select>
+        <input type="submit" value="Get Monster" />
+      </form>
   </section>
   <section id="content">
   </section>
