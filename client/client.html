@@ -32,7 +32,7 @@
       }
 
       //parse if get request
-      if(parseResponse) {
+      if(parseResponse === 'get') {
         response.text().then((resText) => {
 
           //let obj = await response.json();
@@ -40,8 +40,9 @@
           const parsedResponse = JSON.parse(resText);
           
           if(isParty) {
-            //console.log(parsedResponse.monsters);
-            for (const [key, value] of Object.entries(parsedResponse.monsters)) {
+            //breaks down JSON into values
+            //modified from https://flexiple.com/javascript/loop-through-object-javascript
+            for (const [key, value] of Object.entries(parsedResponse.partyByLevel)) {
               console.log(`${key}: ${JSON.stringify(value)}`);
 
               for (const [innerKey, innerValue] of Object.entries(value)) {
@@ -51,21 +52,26 @@
             }
             console.log("Marker - party");
             
-            content.innerHTML += `<p>${JSON.stringify(parsedResponse.monsters)}</p>`;
+            content.innerHTML += `<p>${JSON.stringify(parsedResponse.partyByLevel)}</p>`;
           }
           else {
-            //console.log(parsedResponse.monsters);
+            //breaks down JSON into values
+            //modified from https://flexiple.com/javascript/loop-through-object-javascript
             for (const [key, value] of Object.entries(parsedResponse.monsters)) {
-              console.log(`${key}: ${value}`);
+              console.log(`${key}: ${JSON.stringify(value)}`);
+
+              for (const [innerKey, innerValue] of Object.entries(value)) {
+              console.log(`${innerKey}: ${JSON.stringify(innerValue)}`);
+              
+              }
             }
             console.log("Marker - monster");
             
             content.innerHTML += `<p>${JSON.stringify(parsedResponse.monsters)}</p>`;
           }
-        })
-        
 
-        
+          return parsedResponse;
+        })
       }
     };
 
@@ -90,7 +96,7 @@
       });
 
       //handle response
-      handleResponse(response, true, true);
+      handleResponse(response, 'post', true);
     };
 
     //send party postRequest
@@ -114,11 +120,11 @@
       });
 
       //handle response
-      handleResponse(response, true, false);
+      handleResponse(response, 'post', false);
     };
 
     //send update request for characters
-    const requestPartyUpdate = async (characterForm) => {
+    const requestParty = async (characterForm) => {
       const url = characterForm.querySelector('#urlField').value;
       const method = characterForm.querySelector('#methodSelect').value;
       
@@ -131,11 +137,11 @@
       });
 
       //send request to handleResponse
-      handleResponse(response, method === 'get', true);
+      handleResponse(response, method, true);
     };
     
     //send update request for monsters
-    const requestMonsterUpdate = async (enemyForm) => {
+    const requestMonster = async (enemyForm) => {
       const url = enemyForm.querySelector('#urlField').value;
       const method = enemyForm.querySelector('#methodSelect').value;
       
@@ -148,11 +154,12 @@
       });
 
       //send request to handleResponse
-      handleResponse(response, method === 'get', false);
+      handleResponse(response, method, false);
     };
 
     //determine encounter difficulty based on party and monsters
     const calculateDifficulty = () => {
+      console.log("test");
         //calculate the xp (difficulty) thresholds of the party by taking the easy threshold for each 
         //character and multipling it by 2,3, and 4 for the other thresholds.
 
@@ -170,18 +177,19 @@
       const enemyForm = document.querySelector('#enemyForm');
       const partyForm = document.querySelector('#partyForm');
       const monsterForm = document.querySelector('#monsterForm');
+      const calcButton = document.querySelector('#calcButton');
 
       
       //handles getCharacters request
       const getCharacters = (e) => {
         e.preventDefault();
-        requestPartyUpdate(characterForm);
+        requestParty(characterForm);
         return false;
       }
       //handles getCharacters request
       const getMonsters = (e) => {
         e.preventDefault();
-        requestPartyUpdate(enemyForm);
+        requestMonster(enemyForm);
         return false;
       }
       //handles addToParty request
@@ -196,12 +204,20 @@
         sendMonsterPost(monsterForm);
         return false;
       }
+
+      const calculate = (e) => {
+        console.log("calc click");
+        e.preventDefault();
+        calculateDifficulty();
+        return false;
+      }
       
       //add event listener
       characterForm.addEventListener('submit', getCharacters);
       enemyForm.addEventListener('submit', getMonsters);
       partyForm.addEventListener('submit', addToParty);
       monsterForm.addEventListener('submit', addMonster);
+      calcButton.addEventListener('submit', calculate);
     };
 
     //run init on load
@@ -251,7 +267,8 @@
           <option value="head">HEAD</option>
         </select>
         <input type="submit" value="Get Monster" />
-      </form>
+    </form>
+    <button id="calcButton">Calculate</button>
   </section>
   <section id="content">
   </section>
