@@ -6,7 +6,8 @@
   
   <script>
     //handles fetch response
-    const handleResponse = async (response, parseResponse) => {
+    const handleResponse = async (response, parseResponse, isParty) => {
+      
       const content = document.querySelector('#content');
 
       switch(response.status) {
@@ -32,13 +33,39 @@
 
       //parse if get request
       if(parseResponse) {
-        //parse to json
-        let obj = await response.json();
-        console.log(obj);
+        response.text().then((resText) => {
+
+          //let obj = await response.json();
+          //console.log(obj)
+          const parsedResponse = JSON.parse(resText);
+          
+          if(isParty) {
+            //console.log(parsedResponse.monsters);
+            for (const [key, value] of Object.entries(parsedResponse.monsters)) {
+              console.log(`${key}: ${JSON.stringify(value)}`);
+
+              for (const [innerKey, innerValue] of Object.entries(value)) {
+              console.log(`${innerKey}: ${JSON.stringify(innerValue)}`);
+              
+              }
+            }
+            console.log("Marker - party");
+            
+            content.innerHTML += `<p>${JSON.stringify(parsedResponse.monsters)}</p>`;
+          }
+          else {
+            //console.log(parsedResponse.monsters);
+            for (const [key, value] of Object.entries(parsedResponse.monsters)) {
+              console.log(`${key}: ${value}`);
+            }
+            console.log("Marker - monster");
+            
+            content.innerHTML += `<p>${JSON.stringify(parsedResponse.monsters)}</p>`;
+          }
+        })
         
-        //stringify json for display
-        let jsonString = JSON.stringify(obj);
-        content.innerHTML += `<p>${jsonString}</p>`;
+
+        
       }
     };
 
@@ -63,7 +90,7 @@
       });
 
       //handle response
-      handleResponse(response, true);
+      handleResponse(response, true, true);
     };
 
     //send party postRequest
@@ -87,7 +114,7 @@
       });
 
       //handle response
-      handleResponse(response, true);
+      handleResponse(response, true, false);
     };
 
     //send update request for characters
@@ -104,7 +131,7 @@
       });
 
       //send request to handleResponse
-      handleResponse(response, method === 'get');
+      handleResponse(response, method === 'get', true);
     };
     
     //send update request for monsters
@@ -121,7 +148,7 @@
       });
 
       //send request to handleResponse
-      handleResponse(response, method === 'get');
+      handleResponse(response, method === 'get', false);
     };
 
     //determine encounter difficulty based on party and monsters
@@ -195,9 +222,9 @@
         <label for="monster">Monster: </label>
         <select id='monsterSelect' name="monster">
           <option value='goblin'>Goblin</option>
-          <option value='direWolf'>Dire Wolf</option>
+          <option value='dire wolf'>Dire Wolf</option>
           <option value='owlbear'>Owlbear</option>
-          <option value='redDragon'>Red Dragon</option>
+          <option value='red dragon'>Red Dragon</option>
         </select>
         <label for="amount">Amount: </label>
         <input id="amountField" type="number" name="amount" min="1" max="100" step="1"/>

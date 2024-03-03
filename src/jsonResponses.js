@@ -125,7 +125,7 @@ const addMonster = (request, response, body) => {
   let responseCode = 204;
 
   //create monster if it dosen't exist
-  if (!monsters[body.moster]) {
+  if (!monsters[body.monster]) {
     responseCode = 201;
     monsters[body.monster] = {};
   }
