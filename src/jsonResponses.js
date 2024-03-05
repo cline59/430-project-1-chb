@@ -37,7 +37,7 @@ const internalMeta = (request, response) => {
   respondJSONMeta(request, response, 500);
 };
 
-//return json user object
+//return json party object
 const getCharacters = (request, response) => {
     const responseJSON = {
       partyByLevel,
@@ -49,7 +49,7 @@ const getCharacters = (request, response) => {
 //return 200
 const getCharactersMeta = (request, response) => respondJSONMeta(request, response, 200);
 
-//return json user object
+//return json monster object
 const getMonsters = (request, response) => {
   const responseJSON = {
     monsters,
@@ -57,6 +57,19 @@ const getMonsters = (request, response) => {
 
   respondJSON(request, response, 200, responseJSON);
 };
+
+//return both json objects
+const getAllFighters = (request, response) => {
+  const responseJSON = {
+    partyByLevel,
+    monsters,
+  };
+
+  respondJSON(request, response, 200, responseJSON);
+};
+
+//return 200
+const getAllFightersMeta = (request, response) => respondJSONMeta(request, response, 200);
 
 //return 200
 const getMonstersMeta = (request, response) => respondJSONMeta(request, response, 200);
@@ -148,6 +161,8 @@ module.exports = {
     getCharactersMeta,
     getMonsters,
     getMonstersMeta,
+    getAllFighters,
+    getAllFightersMeta,
     notFound,
     notFoundMeta,
     internal,

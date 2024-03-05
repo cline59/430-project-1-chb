@@ -6,7 +6,7 @@
   
   <script>
     //handles fetch response
-    const handleResponse = async (response, parseResponse, isParty) => {
+    const handleResponse = async (response, parseResponse, pulledRoster) => {
       
       const content = document.querySelector('#content');
 
@@ -39,7 +39,7 @@
           //console.log(obj)
           const parsedResponse = JSON.parse(resText);
           
-          if(isParty) {
+          if(pulledRoster === "party" || pulledRoster === "all") {
             //breaks down JSON into values
             //modified from https://flexiple.com/javascript/loop-through-object-javascript
             for (const [key, value] of Object.entries(parsedResponse.partyByLevel)) {
@@ -54,7 +54,7 @@
             
             content.innerHTML += `<p>${JSON.stringify(parsedResponse.partyByLevel)}</p>`;
           }
-          else {
+          if (pulledRoster === "monsters" || pulledRoster === "all") {
             //breaks down JSON into values
             //modified from https://flexiple.com/javascript/loop-through-object-javascript
             for (const [key, value] of Object.entries(parsedResponse.monsters)) {
@@ -69,7 +69,8 @@
             
             content.innerHTML += `<p>${JSON.stringify(parsedResponse.monsters)}</p>`;
           }
-
+          console.log(parsedResponse);
+          calculateDifficulty(parsedResponse);
           return parsedResponse;
         })
       }
@@ -96,7 +97,7 @@
       });
 
       //handle response
-      handleResponse(response, 'post', true);
+      handleResponse(response, 'post', "party");
     };
 
     //send party postRequest
@@ -120,7 +121,7 @@
       });
 
       //handle response
-      handleResponse(response, 'post', false);
+      handleResponse(response, 'post', "monsters");
     };
 
     //send update request for characters
@@ -137,7 +138,7 @@
       });
 
       //send request to handleResponse
-      handleResponse(response, method, true);
+      handleResponse(response, method, "party");
     };
     
     //send update request for monsters
@@ -154,21 +155,74 @@
       });
 
       //send request to handleResponse
-      handleResponse(response, method, false);
+      handleResponse(response, method, "party");
+    };
+
+    //send update request for monsters
+    const requestAllFighters = async (allForm) => {
+      const url = allForm.querySelector('#urlField').value;
+      const method = allForm.querySelector('#methodSelect').value;
+      
+      //await fetch response
+      let response = await fetch(url, {
+        method,
+        headers: {
+            'Accept': 'application/json'
+        },
+      });
+
+      //send request to handleResponse
+      handleResponse(response, method, "all");
     };
 
     //determine encounter difficulty based on party and monsters
-    const calculateDifficulty = () => {
-      console.log("test");
-        //calculate the xp (difficulty) thresholds of the party by taking the easy threshold for each 
-        //character and multipling it by 2,3, and 4 for the other thresholds.
+    const calculateDifficulty = async (parsedResponse) => {
+      console.log(parsedResponse);
+      //holds the threshold values for each level/difficulty. Wanted to streamline it 
+      //but the difference between each threshold increased each level
+      const thresholdArray = [
+        [25,50,75,100],
+        [50,100,150,200],
+        [75,150,225,400],
+        [125,250,375,500],
+        [250,500,750,1100],
+        [300,600,900,1400],
+        [350,750,1100,1700],
+        [450,900,1400,2100],
+        [550,1100,1600,2400],
+        [600,1200,1900,2800],
+        [800,1600,2400,3600],
+        [1000,2000,3000,4500],
+        [1100,2200,3400,5100],
+        [1250,2500,3800,5700],
+        [1400,2800,4300,6400],
+        [1600,3200,4800,7200],
+        [2000,3900,5900,8800],
+        [2100,4200,6300,9500],
+        [2400,4900,7300,10900],
+        [2800,5700,8500,12700]
+      ];
+      var easyThresh = 0;
+      var medThresh = 0;
+      var hardThresh = 0;
+      var deadThresh = 0;
+      //calculate the xp (difficulty) thresholds of the party by taking the easy threshold for each 
+      //character and multipling it by 2,3, and 4 for the other thresholds.
+      for (const [key, value] of Object.entries(parsedResponse.partyByLevel)) {
+        
+        easyThresh += (thresholdArray[value.level-1][0] * value.amount);
+        medThresh += (thresholdArray[value.level-1][1] * value.amount);
+        hardThresh += (thresholdArray[value.level-1][2] * value.amount);
+        deadThresh += (thresholdArray[value.level-1][3] * value.amount);
+      }
+      content.innerHTML += `<p>Easy: ${easyThresh} Medium: ${medThresh} Hard: ${hardThresh} Deadly: ${deadThresh}</p>`;
 
-        //add the xp from all the monsters, then use a multiplier based on the number of monsters
+      //add the xp from all the monsters, then use a multiplier based on the number of monsters
 
-        //the difficulty will be the next lowest difficulty threshold from the xp total, unless
-        //its an easy encounter
+      //the difficulty will be the next lowest difficulty threshold from the xp total, unless
+      //its an easy encounter
 
-        //print thresholds, xp total, and difficulty to the page
+      //print thresholds, xp total, and difficulty to the page
     }
 
     const init = () => {
@@ -177,6 +231,7 @@
       const enemyForm = document.querySelector('#enemyForm');
       const partyForm = document.querySelector('#partyForm');
       const monsterForm = document.querySelector('#monsterForm');
+      const allForm = document.querySelector('#allForm');
       const calcButton = document.querySelector('#calcButton');
 
       
@@ -186,10 +241,16 @@
         requestParty(characterForm);
         return false;
       }
-      //handles getCharacters request
+      //handles getMonsters request
       const getMonsters = (e) => {
         e.preventDefault();
         requestMonster(enemyForm);
+        return false;
+      }
+      //handles getAllFighters request
+      const getAllFighters = (e) => {
+        e.preventDefault();
+        requestAllFighters(allForm);
         return false;
       }
       //handles addToParty request
@@ -198,7 +259,7 @@
         sendPartyPost(partyForm);
         return false;
       }
-      //handles addToParty request
+      //handles addMonster request
       const addMonster = (e) => {
         e.preventDefault();
         sendMonsterPost(monsterForm);
@@ -215,6 +276,7 @@
       //add event listener
       characterForm.addEventListener('submit', getCharacters);
       enemyForm.addEventListener('submit', getMonsters);
+      allForm.addEventListener('submit', getAllFighters);
       partyForm.addEventListener('submit', addToParty);
       monsterForm.addEventListener('submit', addMonster);
       calcButton.addEventListener('submit', calculate);
@@ -267,6 +329,17 @@
           <option value="head">HEAD</option>
         </select>
         <input type="submit" value="Get Monster" />
+    </form>
+    <form id="allForm" action="/getAllFighters" method="get">
+      <select id='urlField'>
+        <option value='/getAllFighters'>/getAllFighters</option>
+        <option value='/notReal'>/notReal</option>
+      </select>
+      <select id="methodSelect">
+        <option value="get">GET</option>
+        <option value="head">HEAD</option>
+      </select>
+      <input type="submit" value="Get All Fighters" />
     </form>
     <button id="calcButton">Calculate</button>
   </section>
