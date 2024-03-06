@@ -7,29 +7,6 @@
   <script>
     //handles fetch response
     const handleResponse = async (response, parseResponse, pulledRoster) => {
-      
-      const content = document.querySelector('#content');
-
-      switch(response.status) {
-        case 200: //success
-          content.innerHTML = `<b>Success</b>`;
-          break;
-        case 201: //created
-          content.innerHTML = `<b>Created</b>`;
-          break;
-        case 204: //updated
-          content.innerHTML = '<b>Updated (No Content)</b>';
-          return;
-        case 400: //bad request
-          content.innerHTML = `<b>Bad Request</b>`;
-          break;
-        case 404: //not found
-          content.innerHTML = `<b>Resource Not Found</b>`;
-          break;
-        default: 
-          content.innerHTML = `Error code not implemented by client.`;
-          break;
-      }
 
       //parse if get request
       if(parseResponse === 'get') {
@@ -43,6 +20,9 @@
           calculateDifficulty(parsedResponse);
           return parsedResponse;
         })
+      };
+      if (parseResponse === 'post') {
+        content.innerHTML = `<p>Added New Fighters</p>`;
       }
     };
 
@@ -191,7 +171,7 @@
         hardThresh += (thresholdArray[value.level-1][2] * value.amount);
         deadThresh += (thresholdArray[value.level-1][3] * value.amount);
       }
-      content.innerHTML += `<p>Easy: ${easyThresh} Medium: ${medThresh} Hard: ${hardThresh} Deadly: ${deadThresh}</p>`;
+      content.innerHTML = `<p>Easy: ${easyThresh} Medium: ${medThresh} Hard: ${hardThresh} Deadly: ${deadThresh}</p>`;
 
       //add the xp from all the monsters, then use a multiplier based on the number of monsters
       
@@ -324,7 +304,6 @@
       allForm.addEventListener('submit', getAllFighters);
       partyForm.addEventListener('submit', addToParty);
       monsterForm.addEventListener('submit', addMonster);
-      calcButton.addEventListener('submit', calculate);
     };
 
     //run init on load
@@ -362,7 +341,7 @@
         <option value="get">GET</option>
         <option value="head">HEAD</option>
       </select>
-      <input type="submit" value="Get Character" />
+      <!--<input type="submit" value="Get Character" />-->
     </form>
     <form id="enemyForm" action="/getMonsters" method="get">
         <select id='urlField'>
@@ -373,7 +352,7 @@
           <option value="get">GET</option>
           <option value="head">HEAD</option>
         </select>
-        <input type="submit" value="Get Monster" />
+       <!--<input type="submit" value="Get Monster" /> -->
     </form>
     <form id="allForm" action="/getAllFighters" method="get">
       <select id='urlField'>
@@ -384,9 +363,8 @@
         <option value="get">GET</option>
         <option value="head">HEAD</option>
       </select>
-      <input type="submit" value="Get All Fighters" />
+      <input type="submit" value="Calculate" />
     </form>
-    <button id="calcButton">Calculate</button>
   </section>
   <section id="content">
   </section>
