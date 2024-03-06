@@ -39,36 +39,6 @@
           //console.log(obj)
           const parsedResponse = JSON.parse(resText);
           
-          if(pulledRoster === "party" || pulledRoster === "all") {
-            //breaks down JSON into values
-            //modified from https://flexiple.com/javascript/loop-through-object-javascript
-            for (const [key, value] of Object.entries(parsedResponse.partyByLevel)) {
-              console.log(`${key}: ${JSON.stringify(value)}`);
-
-              for (const [innerKey, innerValue] of Object.entries(value)) {
-              console.log(`${innerKey}: ${JSON.stringify(innerValue)}`);
-              
-              }
-            }
-            console.log("Marker - party");
-            
-            content.innerHTML += `<p>${JSON.stringify(parsedResponse.partyByLevel)}</p>`;
-          }
-          if (pulledRoster === "monsters" || pulledRoster === "all") {
-            //breaks down JSON into values
-            //modified from https://flexiple.com/javascript/loop-through-object-javascript
-            for (const [key, value] of Object.entries(parsedResponse.monsters)) {
-              console.log(`${key}: ${JSON.stringify(value)}`);
-
-              for (const [innerKey, innerValue] of Object.entries(value)) {
-              console.log(`${innerKey}: ${JSON.stringify(innerValue)}`);
-              
-              }
-            }
-            console.log("Marker - monster");
-            
-            content.innerHTML += `<p>${JSON.stringify(parsedResponse.monsters)}</p>`;
-          }
           console.log(parsedResponse);
           calculateDifficulty(parsedResponse);
           return parsedResponse;
@@ -179,7 +149,7 @@
     const calculateDifficulty = async (parsedResponse) => {
       console.log(parsedResponse);
       //holds the threshold values for each level/difficulty. Wanted to streamline it 
-      //but the difference between each threshold increased each level
+      //but the difference between each threshold increases each level
       const thresholdArray = [
         [25,50,75,100],
         [50,100,150,200],
@@ -206,8 +176,14 @@
       var medThresh = 0;
       var hardThresh = 0;
       var deadThresh = 0;
+      var monsterNum = 0;
+      var monsterXP = 0;
+      var multiplier = 0;
       //calculate the xp (difficulty) thresholds of the party by taking the easy threshold for each 
       //character and multipling it by 2,3, and 4 for the other thresholds.
+
+      //breaks down JSON into values
+      //modified from https://flexiple.com/javascript/loop-through-object-javascript
       for (const [key, value] of Object.entries(parsedResponse.partyByLevel)) {
         
         easyThresh += (thresholdArray[value.level-1][0] * value.amount);
@@ -218,9 +194,78 @@
       content.innerHTML += `<p>Easy: ${easyThresh} Medium: ${medThresh} Hard: ${hardThresh} Deadly: ${deadThresh}</p>`;
 
       //add the xp from all the monsters, then use a multiplier based on the number of monsters
+      
+      //breaks down JSON into values
+      //modified from https://flexiple.com/javascript/loop-through-object-javascript
+      for (const [key, value] of Object.entries(parsedResponse.monsters)) {
+        monsterNum += (1 * value.amount);
+      }
+      switch (monsterNum) {
+          case 1:
+            multiplier = 1;
+            break;
+          case 2:
+            multiplier = 1.5;
+            break;
+          case 3:
+          case 4:
+          case 5:
+          case 6:
+            multiplier = 2;
+            break;
+          case 7:
+          case 8:
+          case 9:
+          case 10:
+            multiplier = 2.5;
+            break;
+          case 11:
+          case 12:
+          case 13:
+          case 14:
+            multiplier = 3;
+            break;
+          case 15:
+            default:
+            multiplier = 4;
+            break;
+      }
+
+      for (const [key, value] of Object.entries(parsedResponse.monsters)) {
+        switch (value.monster) {
+          case 'goblin':
+            monsterXP += (50 * value.amount) * multiplier;
+            break;
+          case 'dire wolf':
+            monsterXP += (200 * value.amount) * multiplier;
+            break;
+          case 'owlbear':
+            monsterXP += (700 * value.amount) * multiplier;
+            break;
+          case 'red dragon':
+            monsterXP += (5900 * value.amount) * multiplier;
+            break;
+        }
+      }
+      content.innerHTML += `<p>Encounter XP: ${monsterXP}</p>`;
 
       //the difficulty will be the next lowest difficulty threshold from the xp total, unless
       //its an easy encounter
+      switch (true) {
+          case 0 <= monsterXP && monsterXP < medThresh:
+            content.innerHTML += `<p>Encounter is Easy.</p>`;
+            break;
+          case medThresh <= monsterXP && monsterXP < hardThresh:
+            content.innerHTML += `<p>Encounter is Medium.</p>`;
+            break;
+          case hardThresh <= monsterXP && monsterXP < deadThresh:
+            content.innerHTML += `<p>Encounter is Hard.</p>`;
+            break;
+          case monsterXP >= deadThresh:
+            content.innerHTML += `<p>Encounter is Deadly.</p>`;
+            break;
+      }
+
 
       //print thresholds, xp total, and difficulty to the page
     }
